@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bloquera · Dashboard</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app-layout">
+
+  <!-- ══ SIDEBAR ══════════════════════════════════════ -->
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <h2>🧱 BLOQUERA</h2>
+      <span>Panel de gestión</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Principal</div>
+      <div class="nav-item active" onclick="showSection('resumen')">
+        <span class="icon">📊</span><span>Resumen</span>
+      </div>
+      <div class="nav-item" onclick="showSection('stock')">
+        <span class="icon">🧱</span><span>Stock de Bloques</span>
+      </div>
+
+      <div class="nav-section-label">Movimientos</div>
+      <div class="nav-item" onclick="showSection('produccion')">
+        <span class="icon">⚙️</span><span>Producción</span>
+      </div>
+      <div class="nav-item" onclick="showSection('ventas')">
+        <span class="icon">💰</span><span>Ventas Bloques</span>
+      </div>
+      <div class="nav-item" onclick="showSection('arena')">
+        <span class="icon">🏖️</span><span>Arena (Venta)</span>
+      </div>
+
+      <div class="nav-section-label">Costos</div>
+      <div class="nav-item" onclick="showSection('compras')">
+        <span class="icon">🛒</span><span>Compras M.P.</span>
+      </div>
+      <div class="nav-item" onclick="showSection('pagos')">
+        <span class="icon">👷</span><span>Pagos & Fletes</span>
+      </div>
+
+      <div class="nav-section-label">Finanzas</div>
+      <div class="nav-item" onclick="showSection('capital')">
+        <span class="icon">🏦</span><span>Capital</span>
+      </div>
+      <div class="nav-item" onclick="showSection('distribucion')">
+        <span class="icon">✂️</span><span>Distribución</span>
+      </div>
+      <div class="nav-item" onclick="showSection('informes')">
+        <span class="icon">📋</span><span>Informes</span>
+      </div>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-info">
+        <strong id="userEmail">Cargando...</strong>
+        Administrador
+      </div>
+      <button class="btn-logout" onclick="cerrarSesion()">🚪 Cerrar sesión</button>
+    </div>
+  </aside>
+
+  <!-- ══ MAIN ══════════════════════════════════════════ -->
+  <main class="main-content">
+
+    <!-- ─── RESUMEN ─────────────────────────────────── -->
+    <section id="sec-resumen" class="section active">
+      <div class="page-header">
+        <h1>RESUMEN GENERAL</h1>
+        <p id="fechaHoy">Hoy: —</p>
+      </div>
+
+      <div class="stats-grid" id="statsGrid">
+        <div class="stat-card naranja">
+          <div class="stat-label">Stock Bloques</div>
+          <div class="stat-value" id="st-bloques">—</div>
+          <div class="stat-sub">unidades disponibles</div>
+        </div>
+        <div class="stat-card verde">
+          <div class="stat-label">Capital Actual</div>
+          <div class="stat-value" id="st-capital">—</div>
+          <div class="stat-sub">saldo en caja</div>
+        </div>
+        <div class="stat-card azul">
+          <div class="stat-label">Ingresos Totales</div>
+          <div class="stat-value" id="st-ingresos">—</div>
+          <div class="stat-sub">ventas bloques + arena</div>
+        </div>
+        <div class="stat-card rojo">
+          <div class="stat-label">Egresos Totales</div>
+          <div class="stat-value" id="st-egresos">—</div>
+          <div class="stat-sub">compras + pagos</div>
+        </div>
+        <div class="stat-card amarillo">
+          <div class="stat-label">Ganancia del Período</div>
+          <div class="stat-value" id="st-ganancia">—</div>
+          <div class="stat-sub" id="st-ganancia-rango">período actual</div>
+        </div>
+        <div class="stat-card" style="border-top:3px solid var(--gris-brd)">
+          <div class="stat-label">Ganancia Acumulada</div>
+          <div class="stat-value" id="st-ganancia-total" style="font-size:1.4rem">—</div>
+          <div class="stat-sub">histórico total sin distribuir</div>
+        </div>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Últimas Ventas de Bloques</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Fecha</th><th>Cant.</th><th>Precio/u</th><th>Total</th></tr></thead>
+              <tbody id="resumenVentas"><tr><td colspan="4" class="empty-state"><p>Sin datos</p></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Últimas Producciones</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Fecha</th><th>Bloques</th><th>Obs.</th></tr></thead>
+              <tbody id="resumenProduccion"><tr><td colspan="3" class="empty-state"><p>Sin datos</p></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Últimas Compras de Materia Prima</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Material</th><th>Proveedor</th><th>Valor</th><th>Obs.</th></tr></thead>
+            <tbody id="resumenCompras"><tr><td colspan="5" class="empty-state"><p>Sin datos</p></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── STOCK BLOQUES ────────────────────────────── -->
+    <section id="sec-stock" class="section">
+      <div class="page-header">
+        <h1>STOCK DE BLOQUES</h1>
+        <p>Control en tiempo real de unidades disponibles</p>
+      </div>
+
+      <div class="stock-display">
+        <div class="big-num" id="stockNumGrande">0</div>
+        <div class="big-label">Bloques disponibles</div>
+      </div>
+
+      <div class="grid-3">
+        <div class="stat-card verde">
+          <div class="stat-label">Total Producido</div>
+          <div class="stat-value" id="totalProducido">0</div>
+          <div class="stat-sub">unidades fabricadas</div>
+        </div>
+        <div class="stat-card rojo">
+          <div class="stat-label">Total Vendido</div>
+          <div class="stat-value" id="totalVendido">0</div>
+          <div class="stat-sub">unidades despachadas</div>
+        </div>
+        <div class="stat-card naranja">
+          <div class="stat-label">Precio x Bloque</div>
+          <div class="stat-value" id="precioBloque">—</div>
+          <div class="stat-sub"><a href="#" onclick="showSection('capital')" style="color:var(--naranja);font-size:11px;">Configurar →</a></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Historial de Movimientos</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Cantidad</th><th>Stock tras mov.</th><th>Observación</th></tr></thead>
+            <tbody id="historialStock"><tr><td colspan="5" class="empty-state"><p>Sin movimientos</p></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PRODUCCIÓN ───────────────────────────────── -->
+    <section id="sec-produccion" class="section">
+      <div class="page-header">
+        <h1>REGISTRO DE PRODUCCIÓN</h1>
+        <p>Registra los bloques fabricados cada día</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Registrar Producción del Día</div>
+          <div class="form-group">
+            <label>Fecha</label>
+            <input type="date" id="prodFecha">
+          </div>
+          <div class="form-group">
+            <label>Cantidad de bloques producidos</label>
+            <input type="number" id="prodCantidad" placeholder="Ej: 200" min="1">
+          </div>
+          <div class="form-group">
+            <label>Observación (opcional)</label>
+            <input type="text" id="prodObs" placeholder="Ej: Tanda normal, lluvia...">
+          </div>
+          <button class="btn btn-primary btn-full" onclick="registrarProduccion()">
+            ⚙️ Registrar producción
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Resumen de Producción</div>
+          <div class="stat-card verde" style="margin-bottom:12px;">
+            <div class="stat-label">Producción este mes</div>
+            <div class="stat-value" id="prodMes">0</div>
+            <div class="stat-sub">bloques</div>
+          </div>
+          <div class="stat-card naranja">
+            <div class="stat-label">Producción hoy</div>
+            <div class="stat-value" id="prodHoy">0</div>
+            <div class="stat-sub">bloques</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Historial de Producción</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Bloques</th><th>Observación</th><th></th></tr></thead>
+            <tbody id="tablaProducciones"><tr><td colspan="4" class="empty-state"><p>Sin registros</p></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── VENTAS BLOQUES ───────────────────────────── -->
+    <section id="sec-ventas" class="section">
+      <div class="page-header">
+        <h1>VENTAS DE BLOQUES</h1>
+        <p>Registra cada despacho de bloques</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Nueva Venta</div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" id="ventaFecha">
+            </div>
+            <div class="form-group">
+              <label>Cliente (opcional)</label>
+              <input type="text" id="ventaCliente" placeholder="Nombre del cliente">
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Cantidad de bloques</label>
+              <input type="number" id="ventaCantidad" placeholder="Ej: 100" min="1" oninput="calcularVenta()">
+            </div>
+            <div class="form-group">
+              <label>Precio por bloque ($)</label>
+              <input type="number" id="ventaPrecio" placeholder="Ej: 1800" min="0" oninput="calcularVenta()">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>¿Incluye flete?</label>
+            <select id="ventaFlete" onchange="toggleFlete()">
+              <option value="no">No — el cliente recoge</option>
+              <option value="externo">Sí — conductor externo (pago aparte)</option>
+              <option value="propio">Sí — lo llevo yo</option>
+            </select>
+          </div>
+
+          <div id="boxFleteExterno" style="display:none;" class="form-group">
+            <label>Valor del flete ($ a pagar al conductor)</label>
+            <input type="number" id="ventaValorFlete" placeholder="Ej: 50000" min="0" oninput="calcularVenta()">
+          </div>
+
+          <div class="form-group">
+            <label>Observación (opcional)</label>
+            <input type="text" id="ventaObs" placeholder="Ej: Entrega en obra calle 5...">
+          </div>
+
+          <div class="alert alert-info" id="ventaPreview" style="display:none;">
+            <span id="ventaPreviewTxt"></span>
+          </div>
+
+          <button class="btn btn-success btn-full" onclick="registrarVenta()">
+            💰 Registrar venta
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Resumen de Ventas</div>
+          <div class="stat-card verde" style="margin-bottom:12px;">
+            <div class="stat-label">Total vendido (ingresos)</div>
+            <div class="stat-value" id="totalIngresosVentas">$0</div>
+            <div class="stat-sub">todas las ventas</div>
+          </div>
+          <div class="stat-card azul" style="margin-bottom:12px;">
+            <div class="stat-label">Bloques vendidos</div>
+            <div class="stat-value" id="totalBloquesVendidos">0</div>
+            <div class="stat-sub">unidades</div>
+          </div>
+          <div class="stat-card naranja">
+            <div class="stat-label">Fletes pagados</div>
+            <div class="stat-value" id="totalFletes">$0</div>
+            <div class="stat-sub">costo de despacho</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Historial de Ventas</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Cliente</th><th>Cant.</th><th>Precio/u</th><th>Flete</th><th>Total</th><th>Obs.</th><th></th></tr></thead>
+            <tbody id="tablaVentas"><tr><td colspan="8" class="empty-state"><p>Sin ventas</p></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── ARENA VENTA ──────────────────────────────── -->
+    <section id="sec-arena" class="section">
+      <div class="page-header">
+        <h1>VENTA DE ARENA</h1>
+        <p>Arena de arroyo comprada para revender — seguimiento de volcos y ganancias</p>
+      </div>
+
+      <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('tabArena','tabArenaCompra',this)">🛒 Registrar Compra de Volco</button>
+        <button class="tab-btn" onclick="switchTab('tabArena','tabArenaVenta',this)">💵 Registrar Venta</button>
+        <button class="tab-btn" onclick="switchTab('tabArena','tabArenaHistorial',this)">📋 Historial</button>
+      </div>
+
+      <div id="tabArenaCompra" class="tab-panel active">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Registrar Compra de Volco de Arena</div>
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" id="arenaCompFecha">
+            </div>
+            <div class="form-group">
+              <label>Valor pagado por el volco ($)</label>
+              <input type="number" id="arenaCompValor" placeholder="Ej: 380000" min="0">
+            </div>
+            <div class="form-group">
+              <label>Observación (opcional)</label>
+              <input type="text" id="arenaCompObs" placeholder="Ej: Proveedor Río Grande">
+            </div>
+            <button class="btn btn-primary btn-full" onclick="registrarCompraArena()">
+              🛒 Registrar compra de volco
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Estado de Volcos</div>
+            <div id="resumenVolcos">
+              <div class="empty-state"><div class="icon">🏖️</div><p>Sin volcos registrados</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tabArenaVenta" class="tab-panel">
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Registrar Venta de Arena</div>
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" id="arenaVentFecha">
+            </div>
+            <div class="form-group">
+              <label>Cliente (opcional)</label>
+              <input type="text" id="arenaVentCliente" placeholder="Nombre del cliente">
+            </div>
+            <div class="form-group">
+              <label>Valor cobrado ($)</label>
+              <input type="number" id="arenaVentValor" placeholder="Ej: 50000" min="0">
+            </div>
+            <div class="form-group">
+              <label>Observación (opcional)</label>
+              <input type="text" id="arenaVentObs" placeholder="Ej: 3 latas, calle 10">
+            </div>
+            <button class="btn btn-success btn-full" onclick="registrarVentaArena()">
+              💵 Registrar venta de arena
+            </button>
+          </div>
+
+          <div class="card">
+            <div class="card-title">Resumen de Arena</div>
+            <div class="stat-card azul" style="margin-bottom:12px;">
+              <div class="stat-label">Total invertido en volcos</div>
+              <div class="stat-value" id="arenaInvertido">$0</div>
+              <div class="stat-sub">costo acumulado</div>
+            </div>
+            <div class="stat-card verde" style="margin-bottom:12px;">
+              <div class="stat-label">Total vendido en arena</div>
+              <div class="stat-value" id="arenaVendidoTotal">$0</div>
+              <div class="stat-sub">ingresos</div>
+            </div>
+            <div class="stat-card amarillo">
+              <div class="stat-label">Ganancia arena</div>
+              <div class="stat-value" id="arenaGanancia">$0</div>
+              <div class="stat-sub">ingresos – inversión</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="tabArenaHistorial" class="tab-panel">
+        <div class="card">
+          <div class="card-title">Historial — Compras de Volcos</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Fecha</th><th>Valor volco</th><th>Observación</th><th></th></tr></thead>
+              <tbody id="tablaVolcos"><tr><td colspan="4" class="empty-state"><p>Sin registros</p></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Historial — Ventas de Arena</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Fecha</th><th>Cliente</th><th>Valor</th><th>Observación</th><th></th></tr></thead>
+              <tbody id="tablaVentasArena"><tr><td colspan="5" class="empty-state"><p>Sin ventas</p></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── COMPRAS MATERIA PRIMA ───────────────────── -->
+    <section id="sec-compras" class="section">
+      <div class="page-header">
+        <h1>COMPRAS DE MATERIA PRIMA</h1>
+        <p>Arena arroyo, arena mina y cemento para producción de bloques</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Registrar Compra</div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" id="compFecha">
+            </div>
+            <div class="form-group">
+              <label>Material</label>
+              <select id="compMaterial">
+                <option value="Arena de Arroyo">Arena de Arroyo (para bloques)</option>
+                <option value="Arena de Mina">Arena de Mina</option>
+                <option value="Cemento">Cemento</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Proveedor (opcional)</label>
+              <input type="text" id="compProveedor" placeholder="Nombre del proveedor">
+            </div>
+            <div class="form-group">
+              <label>Valor pagado ($)</label>
+              <input type="number" id="compValor" placeholder="Ej: 380000" min="0">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Cantidad / descripción (opcional)</label>
+            <input type="text" id="compCantidad" placeholder="Ej: 1 volco, 10 bultos, etc.">
+          </div>
+
+          <div class="form-group">
+            <label>Observación (opcional)</label>
+            <input type="text" id="compObs" placeholder="Observación adicional">
+          </div>
+
+          <button class="btn btn-primary btn-full" onclick="registrarCompra()">
+            🛒 Registrar compra
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Resumen por Material</div>
+          <div id="resumenMateriales">
+            <div class="empty-state"><div class="icon">📦</div><p>Sin compras registradas</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Historial de Compras</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Material</th><th>Proveedor</th><th>Cantidad</th><th>Valor</th><th>Obs.</th><th></th></tr></thead>
+            <tbody id="tablaCompras"><tr><td colspan="7" class="empty-state"><p>Sin compras</p></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── PAGOS & FLETES ───────────────────────────── -->
+    <section id="sec-pagos" class="section">
+      <div class="page-header">
+        <h1>PAGOS Y FLETES</h1>
+        <p>Pago al trabajador y fletes de despacho</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Registrar Pago / Gasto</div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Fecha</label>
+              <input type="date" id="pagoFecha">
+            </div>
+            <div class="form-group">
+              <label>Tipo</label>
+              <select id="pagoTipo">
+                <option value="Pago Trabajador">Pago al Trabajador</option>
+                <option value="Flete Externo">Flete (conductor externo)</option>
+                <option value="Flete Propio">Flete Propio (gastos míos)</option>
+                <option value="Otro Gasto">Otro gasto</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Monto ($)</label>
+            <input type="number" id="pagoMonto" placeholder="Ej: 120000" min="0">
+          </div>
+
+          <div class="form-group">
+            <label>Descripción (opcional)</label>
+            <input type="text" id="pagoDesc" placeholder="Ej: Quincena trabajador, flete obra calle 5...">
+          </div>
+
+          <button class="btn btn-danger btn-full" onclick="registrarPago()">
+            💸 Registrar pago
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Resumen de Pagos</div>
+          <div id="resumenPagos">
+            <div class="empty-state"><div class="icon">💸</div><p>Sin pagos registrados</p></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Historial de Pagos</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Tipo</th><th>Monto</th><th>Descripción</th><th></th></tr></thead>
+            <tbody id="tablaPagos"><tr><td colspan="5" class="empty-state"><p>Sin pagos</p></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── CAPITAL ──────────────────────────────────── -->
+    <section id="sec-capital" class="section">
+      <div class="page-header">
+        <h1>CAPITAL</h1>
+        <p>Capital inicial y configuración del negocio</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Capital Inicial del Negocio</div>
+          <div class="form-group">
+            <label>Capital inicial ($)</label>
+            <input type="number" id="capitalInicial" placeholder="Ej: 5000000" min="0">
+          </div>
+          <div class="form-group">
+            <label>Fecha de inicio</label>
+            <input type="date" id="capitalFecha">
+          </div>
+          <div class="form-group">
+            <label>Nota (opcional)</label>
+            <input type="text" id="capitalNota" placeholder="Ej: Aporte inicial propio">
+          </div>
+          <button class="btn btn-primary btn-full" onclick="guardarCapital()">
+            💾 Guardar capital inicial
+          </button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Configuración de Precios</div>
+          <div class="form-group">
+            <label>Precio de venta por bloque ($)</label>
+            <input type="number" id="configPrecioBloque" placeholder="Ej: 1800" min="0">
+          </div>
+          <button class="btn btn-secondary btn-full" style="margin-top:8px;" onclick="guardarConfig()">
+            💾 Guardar configuración
+          </button>
+
+          <div style="margin-top:20px; padding-top:16px; border-top:1px solid var(--gris-brd);">
+            <div class="card-title" style="margin-bottom:12px;">Estado actual</div>
+            <div id="capitalActualInfo">
+              <div class="empty-state"><p>Cargando...</p></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Historial de Capital Ingresado</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Fecha</th><th>Monto</th><th>Nota</th><th></th></tr></thead>
+            <tbody id="tablaCapital"><tr><td colspan="4" class="empty-state"><p>Sin registros</p></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── DISTRIBUCIÓN ─────────────────────────────── -->
+    <section id="sec-distribucion" class="section">
+      <div class="page-header">
+        <h1>DISTRIBUCIÓN DE GANANCIAS</h1>
+        <p>Reparto quincenal o mensual de utilidades</p>
+      </div>
+
+      <div class="grid-2">
+        <div class="card">
+          <div class="card-title">Calcular y Registrar Distribución</div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label>Desde</label>
+              <input type="date" id="distDesde">
+            </div>
+            <div class="form-group">
+              <label>Hasta</label>
+              <input type="date" id="distHasta">
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label>Período</label>
+            <select id="distPeriodo">
+              <option value="quincenal">Quincenal</option>
+              <option value="mensual">Mensual</option>
+            </select>
+          </div>
+
+          <button class="btn btn-secondary btn-full" onclick="calcularDistribucion()" style="margin-bottom:10px;">
+            🔢 Calcular ganancia del período
+          </button>
+
+          <div id="distResultado" style="display:none;" class="dist-box">
+            <div style="margin-bottom:12px;">
+              <div class="stat-label">Ingresos del período</div>
+              <div style="font-size:20px;font-weight:800;color:var(--verde);" id="distIngresos">$0</div>
+            </div>
+            <div style="margin-bottom:12px;">
+              <div class="stat-label">Egresos del período</div>
+              <div style="font-size:20px;font-weight:800;color:var(--rojo);" id="distEgresos">$0</div>
+            </div>
+            <div style="border-top:1px solid rgba(255,255,255,.1);padding-top:12px;">
+              <div class="stat-label">GANANCIA NETA</div>
+              <div style="font-size:28px;font-weight:800;" id="distGanancia">$0</div>
+            </div>
+
+            <div style="margin-top:16px;">
+              <label>Monto a distribuir ($)</label>
+              <input type="number" id="distMonto" placeholder="Puede ser diferente al total" style="margin-bottom:10px;">
+              <label>Nota</label>
+              <input type="text" id="distNota" placeholder="Ej: Distribución quincena 1 junio">
+              <button class="btn btn-success btn-full" style="margin-top:12px;" onclick="confirmarDistribucion()">
+                ✂️ Confirmar distribución
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-title">Historial de Distribuciones</div>
+          <div class="table-wrap">
+            <table>
+              <thead><tr><th>Fecha</th><th>Período</th><th>Monto</th><th>Nota</th><th></th></tr></thead>
+              <tbody id="tablaDistribuciones"><tr><td colspan="5" class="empty-state"><p>Sin distribuciones</p></td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ─── INFORMES ─────────────────────────────────── -->
+    <section id="sec-informes" class="section">
+      <div class="page-header">
+        <h1>INFORMES</h1>
+        <p>Reportes financieros por período</p>
+      </div>
+
+      <div class="periodo-bar">
+        <label>Desde</label>
+        <input type="date" id="informeDesde">
+        <label>Hasta</label>
+        <input type="date" id="informeHasta">
+        <button class="btn btn-primary" onclick="generarInforme()">📊 Generar informe</button>
+        <button class="btn btn-secondary" onclick="exportarExcel()">📥 Exportar Excel</button>
+      </div>
+
+      <div id="informeResultado" style="display:none;">
+        <div class="stats-grid">
+          <div class="stat-card verde">
+            <div class="stat-label">Ingresos Bloques</div>
+            <div class="stat-value" id="infIngBloques">$0</div>
+          </div>
+          <div class="stat-card azul">
+            <div class="stat-label">Ingresos Arena</div>
+            <div class="stat-value" id="infIngArena">$0</div>
+          </div>
+          <div class="stat-card rojo">
+            <div class="stat-label">Compras M.P.</div>
+            <div class="stat-value" id="infCompras">$0</div>
+          </div>
+          <div class="stat-card rojo">
+            <div class="stat-label">Pagos/Gastos</div>
+            <div class="stat-value" id="infPagos">$0</div>
+          </div>
+          <div class="stat-card amarillo">
+            <div class="stat-label">Ganancia Neta</div>
+            <div class="stat-value" id="infGanancia">$0</div>
+          </div>
+        </div>
+
+        <div class="grid-2">
+          <div class="card">
+            <div class="card-title">Ventas de Bloques</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Fecha</th><th>Cliente</th><th>Cant.</th><th>Total</th></tr></thead>
+                <tbody id="infTablaVentas"></tbody>
+              </table>
+            </div>
+          </div>
+          <div class="card">
+            <div class="card-title">Compras de Materia Prima</div>
+            <div class="table-wrap">
+              <table>
+                <thead><tr><th>Fecha</th><th>Material</th><th>Valor</th></tr></thead>
+                <tbody id="infTablaCompras"></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="informeVacio" class="card">
+        <div class="empty-state">
+          <div class="icon">📋</div>
+          <p>Selecciona un rango de fechas y genera el informe</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script type="module" src="app.js"></script>
+<script type="module" src="exportar.js"></script>
+</body>
+</html>
