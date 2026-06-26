@@ -10,6 +10,18 @@
 
 <div class="app-layout">
 
+  <!-- ══ TOPBAR MÓVIL ══════════════════════════════════ -->
+  <header class="mobile-topbar">
+    <button class="hamburger" id="hambBtn" onclick="toggleSidebar()" aria-label="Menú">
+      <span></span><span></span><span></span>
+    </button>
+    <span class="mobile-title">🧱 BLOQUERA</span>
+    <button class="btn-logout-sm" onclick="cerrarSesion()">🚪</button>
+  </header>
+
+  <!-- Overlay para cerrar sidebar en móvil -->
+  <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
   <!-- ══ SIDEBAR ══════════════════════════════════════ -->
   <aside class="sidebar">
     <div class="sidebar-logo">
@@ -774,5 +786,24 @@
 
 <script type="module" src="app.js"></script>
 <script type="module" src="exportar.js"></script>
+<script>
+function toggleSidebar() {
+  const sb = document.querySelector('.sidebar');
+  const ov = document.getElementById('sidebarOverlay');
+  sb.classList.toggle('open');
+  ov.classList.toggle('open');
+}
+function closeSidebar() {
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('open');
+}
+document.addEventListener('DOMContentLoaded', function() {
+  document.querySelectorAll('.nav-item').forEach(item => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth < 768) closeSidebar();
+    });
+  });
+});
+</script>
 </body>
 </html>

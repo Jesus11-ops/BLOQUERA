@@ -542,19 +542,136 @@ tbody tr:hover { background: rgba(255,255,255,.03); }
   font-size: 20px; cursor: pointer; line-height: 1;
 }
 
-/* RESPONSIVE */
-@media (max-width: 900px) {
-  .sidebar { width: 60px; }
-  .sidebar-logo h2, .sidebar-logo span,
-  .nav-section-label, .nav-item span,
-  .user-info, .btn-logout { display: none; }
-  .nav-item { justify-content: center; padding: 12px; }
-  .main-content { margin-left: 60px; padding: 16px; }
+/* ─── RESPONSIVE COMPLETO ──────────────────────────── */
+
+/* Topbar móvil — oculto en desktop */
+.mobile-topbar {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 56px;
+  background: var(--gris-osc);
+  border-bottom: 1px solid var(--gris-brd);
+  z-index: 200;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+}
+.hamburger {
+  background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column;
+  justify-content: center; gap: 5px;
+  width: 36px; height: 36px; padding: 6px;
+}
+.hamburger span {
+  display: block; height: 2px; border-radius: 2px;
+  background: var(--texto); transition: all .25s;
+}
+.mobile-title {
+  font-family: var(--font-disp);
+  font-size: 22px;
+  letter-spacing: 2px;
+  color: var(--naranja);
+}
+.btn-logout-sm {
+  background: none; border: 1px solid var(--gris-brd);
+  border-radius: 6px; padding: 6px 10px;
+  color: var(--texto-sec); cursor: pointer; font-size: 16px;
+}
+.btn-logout-sm:hover { border-color: var(--rojo); color: var(--rojo); }
+
+/* Overlay oscuro al abrir sidebar */
+.sidebar-overlay {
+  display: none;
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,.6);
+  z-index: 149;
+}
+.sidebar-overlay.open { display: block; }
+
+/* ── Tablet (768–1024px) ── */
+@media (max-width: 1024px) and (min-width: 768px) {
+  .sidebar {
+    width: 64px;
+    overflow: hidden;
+  }
+  .sidebar-logo { padding: 16px 0; text-align: center; }
+  .sidebar-logo h2 { font-size: 22px; letter-spacing: 0; }
+  .sidebar-logo span, .nav-section-label,
+  .nav-item span, .user-info,
+  .btn-logout { display: none; }
+  .nav-item { justify-content: center; padding: 14px 0; }
+  .nav-item .icon { width: auto; font-size: 18px; }
+  .sidebar-footer { padding: 12px 0; display: flex; justify-content: center; }
+  .main-content { margin-left: 64px; padding: 20px; }
   .grid-2, .grid-3 { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
 }
-@media (max-width: 500px) {
+
+/* ── Móvil (< 768px) ── */
+@media (max-width: 767px) {
+  /* Activar topbar */
+  .mobile-topbar { display: flex; }
+
+  /* Sidebar: drawer lateral oculto por defecto */
+  .sidebar {
+    width: 260px;
+    transform: translateX(-100%);
+    transition: transform .28s cubic-bezier(.4,0,.2,1);
+    z-index: 150;
+    top: 0;
+  }
+  .sidebar.open {
+    transform: translateX(0);
+    box-shadow: 4px 0 32px rgba(0,0,0,.5);
+  }
+
+  /* Contenido desplazado hacia abajo por topbar */
+  .main-content {
+    margin-left: 0;
+    padding: 72px 14px 24px;
+  }
+
+  /* Grillas a 1 columna */
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Tarjetas stat más compactas */
+  .stat-card { padding: 14px; }
+  .stat-value { font-size: 20px; }
+
+  /* Formularios: campos uno por uno */
+  .form-row { flex-direction: column; gap: 0; }
+  .form-row .form-group { min-width: 100%; }
+
+  /* Títulos más pequeños */
+  .page-header h1 { font-size: 24px; }
+
+  /* Tablas: scroll horizontal */
+  .table-wrap { -webkit-overflow-scrolling: touch; }
+  table { font-size: 12px; }
+  th, td { padding: 8px 10px; }
+
+  /* Cards */
+  .card { padding: 16px; }
+
+  /* Periodo bar */
+  .periodo-bar { flex-direction: column; align-items: flex-start; gap: 8px; }
+  .periodo-bar input[type=date] { width: 100%; }
+
+  /* Modal */
+  .modal { margin: 16px; max-width: calc(100vw - 32px); padding: 20px; }
+
+  /* Ocultar columnas no esenciales en tablas pequeñas */
+  .hide-mobile { display: none !important; }
+}
+
+/* ── Extra pequeño (< 400px) ── */
+@media (max-width: 400px) {
   .stats-grid { grid-template-columns: 1fr; }
+  .stat-value { font-size: 18px; }
+  .tabs { flex-wrap: wrap; }
+  .tab-btn { padding: 6px 12px; font-size: 12px; }
 }
 
 /* PRINT */
