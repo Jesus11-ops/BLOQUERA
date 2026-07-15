@@ -343,6 +343,7 @@ body.login-page {
 /* GRID 2 COL */
 .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
 .grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; }
+.grid-4 { display: grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap: 16px; }
 
 /* FORMULARIOS */
 .form-row { display: flex; gap: 14px; flex-wrap: wrap; }
@@ -604,7 +605,7 @@ tbody tr:hover { background: rgba(255,255,255,.03); }
   .nav-item .icon { width: auto; font-size: 18px; }
   .sidebar-footer { padding: 12px 0; display: flex; justify-content: center; }
   .main-content { margin-left: 64px; padding: 20px; }
-  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; }
 }
 
@@ -633,7 +634,7 @@ tbody tr:hover { background: rgba(255,255,255,.03); }
   }
 
   /* Grillas a 1 columna */
-  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .grid-2, .grid-3, .grid-4 { grid-template-columns: 1fr; }
   .stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
 
   /* Tarjetas stat más compactas */

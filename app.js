@@ -149,6 +149,11 @@ function calcStats() {
   const ganancia     = totalIngresos - egCompras - egCompArena - egPagos;
   const capitalActual = capitalTotal + ganancia - egDistrib;
 
+  // ── Valor del stock de bloques (dinero "guardado" en material, no en efectivo) ──
+  const precioBloqueActual = DATA.config.precioBloque || 0;
+  const valorStockBloques  = stockBloques * precioBloqueActual;
+  const patrimonioTotal    = capitalActual + valorStockBloques;
+
   // ── Ganancia del período actual (desde el día después de la última distribución) ──
   let periodoDesde = null;
   let periodoLabel = "inicio";
@@ -172,7 +177,8 @@ function calcStats() {
            ingBloques, ingArena, totalIngresos,
            egCompras, egCompArena, egPagos, egDistrib,
            totalEgresos, capitalTotal, ganancia, capitalActual,
-           gananciaPeriodo, periodoLabel };
+           gananciaPeriodo, periodoLabel,
+           precioBloqueActual, valorStockBloques, patrimonioTotal };
 }
 
 // ═══ RESUMEN ══════════════════════════════════════════════════
@@ -182,6 +188,10 @@ function renderResumen() {
   document.getElementById("st-capital").textContent   = fmt(s.capitalActual);
   document.getElementById("st-ingresos").textContent  = fmt(s.totalIngresos);
   document.getElementById("st-egresos").textContent   = fmt(s.totalEgresos);
+  const elValorStock = document.getElementById("st-valorstock");
+  if (elValorStock) elValorStock.textContent = fmt(s.valorStockBloques);
+  const elPatrimonio = document.getElementById("st-patrimonio");
+  if (elPatrimonio) elPatrimonio.textContent = fmt(s.patrimonioTotal);
   // Ganancia del período (desde última distribución) y acumulada histórica
   const elGan = document.getElementById("st-ganancia");
   elGan.textContent = fmt(s.gananciaPeriodo);
@@ -235,6 +245,8 @@ function renderStock() {
   document.getElementById("totalProducido").textContent  = numCO(s.totalProducido);
   document.getElementById("totalVendido").textContent    = numCO(s.totalVendido);
   document.getElementById("precioBloque").textContent    = DATA.config.precioBloque ? fmt(DATA.config.precioBloque) : "Sin configurar";
+  const elVSB = document.getElementById("valorStockBloques");
+  if (elVSB) elVSB.textContent = DATA.config.precioBloque ? fmt(s.valorStockBloques) : "Configure el precio";
 
   // historial de movimientos (producciones + ventas mezcladas por fecha)
   const movs = [
@@ -600,9 +612,20 @@ function renderCapital() {
         <strong class="neg">-${fmt(s.egDistrib)}</strong>
       </div>
       <div style="display:flex;justify-content:space-between;border-top:1px solid var(--gris-brd);padding-top:10px;">
-        <span style="font-weight:700;">Capital Actual:</span>
+        <span style="font-weight:700;">Capital Actual (efectivo):</span>
         <strong style="font-size:18px;color:var(--verde)">${fmt(s.capitalActual)}</strong>
       </div>
+      <div style="display:flex;justify-content:space-between;padding-top:6px;">
+        <span style="color:var(--texto-sec)">+ Valor en stock (${numCO(s.stockBloques)} bloques × ${fmt(s.precioBloqueActual)}):</span>
+        <strong style="color:var(--naranja)">${fmt(s.valorStockBloques)}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-top:1px solid var(--gris-brd);padding-top:10px;">
+        <span style="font-weight:700;">Patrimonio Total (efectivo + material):</span>
+        <strong style="font-size:18px;color:var(--azul)">${fmt(s.patrimonioTotal)}</strong>
+      </div>
+      <p style="font-size:11px;color:var(--texto-sec);margin-top:4px;">
+        El "Capital Actual" es lo que tienes disponible en efectivo. El "Valor en stock" es dinero que ya está convertido en bloques sin vender — no lo repartas como si fuera efectivo. Súbelo/bájalo cambiando el "Precio de venta por bloque" en Configuración.
+      </p>
     </div>`;
 }
 
@@ -669,6 +692,17 @@ window.calcularDistribucion = function() {
   gEl.className   = ganancia >= 0 ? "pos" : "neg";
   document.getElementById("distMonto").value = ganancia > 0 ? ganancia : 0;
   document.getElementById("distResultado").style.display = "block";
+
+  // Aviso: cuánto del "patrimonio" está guardado en bloques sin vender (no es efectivo)
+  const s = calcStats();
+  const elAviso = document.getElementById("distAvisoStock");
+  if (elAviso) {
+    elAviso.innerHTML = s.valorStockBloques > 0 ? `
+      ⚠️ Tienes <strong>${numCO(s.stockBloques)} bloques</strong> sin vender, que representan
+      <strong>${fmt(s.valorStockBloques)}</strong> en material (a ${fmt(s.precioBloqueActual)}/bloque).
+      Ese valor <u>no es efectivo disponible</u> — verifica que el capital en caja alcance antes de confirmar el reparto.
+    ` : `Configura el "Precio de venta por bloque" en Capital para ver cuánto vale tu stock actual.`;
+  }
 };
 
 window.confirmarDistribucion = async function() {
