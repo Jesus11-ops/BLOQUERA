@@ -154,6 +154,10 @@ function calcStats() {
   const valorStockBloques  = stockBloques * precioBloqueActual;
   const patrimonioTotal    = capitalActual + valorStockBloques;
 
+  // ── Ganancia Neta repartible: patrimonio total menos el capital que siempre quieres mantener libre ──
+  const capitalReservado = DATA.config.capitalReservado || 0;
+  const gananciaNeta      = patrimonioTotal - capitalReservado;
+
   // ── Ganancia del período actual (desde el día después de la última distribución) ──
   let periodoDesde = null;
   let periodoLabel = "inicio";
@@ -178,7 +182,8 @@ function calcStats() {
            egCompras, egCompArena, egPagos, egDistrib,
            totalEgresos, capitalTotal, ganancia, capitalActual,
            gananciaPeriodo, periodoLabel,
-           precioBloqueActual, valorStockBloques, patrimonioTotal };
+           precioBloqueActual, valorStockBloques, patrimonioTotal,
+           capitalReservado, gananciaNeta };
 }
 
 // ═══ RESUMEN ══════════════════════════════════════════════════
@@ -192,6 +197,8 @@ function renderResumen() {
   if (elValorStock) elValorStock.textContent = fmt(s.valorStockBloques);
   const elPatrimonio = document.getElementById("st-patrimonio");
   if (elPatrimonio) elPatrimonio.textContent = fmt(s.patrimonioTotal);
+  const elGananciaNeta = document.getElementById("st-gananciasneta");
+  if (elGananciaNeta) elGananciaNeta.textContent = fmt(s.gananciaNeta);
   // Ganancia del período (desde última distribución) y acumulada histórica
   const elGan = document.getElementById("st-ganancia");
   elGan.textContent = fmt(s.gananciaPeriodo);
@@ -623,8 +630,16 @@ function renderCapital() {
         <span style="font-weight:700;">Patrimonio Total (efectivo + material):</span>
         <strong style="font-size:18px;color:var(--azul)">${fmt(s.patrimonioTotal)}</strong>
       </div>
+      <div style="display:flex;justify-content:space-between;padding-top:6px;">
+        <span style="color:var(--texto-sec)">− Capital reservado (siempre libre):</span>
+        <strong class="neg">-${fmt(s.capitalReservado)}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;border-top:2px solid var(--gris-brd);padding-top:10px;">
+        <span style="font-weight:700;">GANANCIA NETA (repartible):</span>
+        <strong style="font-size:20px;color:${s.gananciaNeta>=0?'var(--verde)':'var(--rojo)'}">${fmt(s.gananciaNeta)}</strong>
+      </div>
       <p style="font-size:11px;color:var(--texto-sec);margin-top:4px;">
-        El "Capital Actual" es lo que tienes disponible en efectivo. El "Valor en stock" es dinero que ya está convertido en bloques sin vender — no lo repartas como si fuera efectivo. Súbelo/bájalo cambiando el "Precio de venta por bloque" en Configuración.
+        El "Capital Actual" es lo que tienes disponible en efectivo. El "Valor en stock" es dinero que ya está convertido en bloques sin vender. El "Capital reservado" es lo que definas en Configuración como base que siempre quieres mantener libre, se haya vendido o no. La "Ganancia Neta" (Patrimonio Total − Capital reservado) es lo que realmente puedes repartir.
       </p>
     </div>`;
 }
@@ -632,6 +647,10 @@ function renderCapital() {
 function cargarConfigUI() {
   if (DATA.config.precioBloque) {
     document.getElementById("configPrecioBloque").value = DATA.config.precioBloque;
+  }
+  const elReservado = document.getElementById("configCapitalReservado");
+  if (elReservado && DATA.config.capitalReservado) {
+    elReservado.value = DATA.config.capitalReservado;
   }
 }
 
@@ -648,11 +667,14 @@ window.guardarCapital = async function() {
 };
 
 window.guardarConfig = async function() {
-  const precio = parseCOP("configPrecioBloque")||0;
-  await setDoc(doc(db,"Config","general"), { precioBloque: precio }, { merge: true });
-  DATA.config.precioBloque = precio;
+  const precio     = parseCOP("configPrecioBloque")||0;
+  const reservado  = document.getElementById("configCapitalReservado") ? (parseCOP("configCapitalReservado")||0) : (DATA.config.capitalReservado||0);
+  await setDoc(doc(db,"Config","general"), { precioBloque: precio, capitalReservado: reservado }, { merge: true });
+  DATA.config.precioBloque     = precio;
+  DATA.config.capitalReservado = reservado;
   renderResumen();
   renderStock();
+  renderCapital();
   alert("✅ Configuración guardada");
 };
 
@@ -690,18 +712,27 @@ window.calcularDistribucion = function() {
   const gEl = document.getElementById("distGanancia");
   gEl.textContent = fmt(ganancia);
   gEl.className   = ganancia >= 0 ? "pos" : "neg";
-  document.getElementById("distMonto").value = ganancia > 0 ? ganancia : 0;
+
+  // La Ganancia Neta (patrimonio total − capital reservado) es lo que se sugiere repartir,
+  // porque ya tiene en cuenta el valor del stock sin vender y el capital que siempre se quiere mantener libre.
+  const s = calcStats();
+  document.getElementById("distMonto").value = s.gananciaNeta > 0 ? s.gananciaNeta : 0;
   document.getElementById("distResultado").style.display = "block";
 
-  // Aviso: cuánto del "patrimonio" está guardado en bloques sin vender (no es efectivo)
-  const s = calcStats();
   const elAviso = document.getElementById("distAvisoStock");
   if (elAviso) {
-    elAviso.innerHTML = s.valorStockBloques > 0 ? `
-      ⚠️ Tienes <strong>${numCO(s.stockBloques)} bloques</strong> sin vender, que representan
-      <strong>${fmt(s.valorStockBloques)}</strong> en material (a ${fmt(s.precioBloqueActual)}/bloque).
-      Ese valor <u>no es efectivo disponible</u> — verifica que el capital en caja alcance antes de confirmar el reparto.
-    ` : `Configura el "Precio de venta por bloque" en Capital para ver cuánto vale tu stock actual.`;
+    elAviso.innerHTML = `
+      <div style="display:flex;justify-content:space-between;"><span>Capital Actual (efectivo):</span><strong>${fmt(s.capitalActual)}</strong></div>
+      <div style="display:flex;justify-content:space-between;">
+        <span>+ Valor en stock (${numCO(s.stockBloques)} bloques × ${fmt(s.precioBloqueActual)}):</span><strong>${fmt(s.valorStockBloques)}</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;"><span>− Capital reservado (siempre libre):</span><strong>-${fmt(s.capitalReservado)}</strong></div>
+      <div style="display:flex;justify-content:space-between;border-top:1px solid rgba(232,98,26,.3);margin-top:6px;padding-top:6px;">
+        <span style="font-weight:700;">= GANANCIA NETA REPARTIBLE:</span>
+        <strong style="font-size:15px;">${fmt(s.gananciaNeta)}</strong>
+      </div>
+      <p style="margin-top:6px;">Este es el monto sugerido arriba. Ya incluye el valor de los bloques sin vender y ya descontó lo que quieres mantener siempre libre. Ajústalo si lo necesitas antes de confirmar.</p>
+    `;
   }
 };
 
@@ -712,6 +743,15 @@ window.confirmarDistribucion = async function() {
   const monto  = parseCOP("distMonto");
   const nota   = document.getElementById("distNota").value.trim();
   if (!monto || monto <= 0) { alert("⚠️ Ingrese un monto válido"); return; }
+
+  const s = calcStats();
+  if (monto > s.gananciaNeta) {
+    const seguir = confirm(
+      `⚠️ El monto (${fmt(monto)}) es mayor que la Ganancia Neta repartible (${fmt(s.gananciaNeta)}).\n` +
+      `Repartir esto tocaría el capital reservado o el valor en stock.\n\n¿Deseas continuar de todas formas?`
+    );
+    if (!seguir) return;
+  }
   if (!confirm(`¿Confirmar distribución de ${fmt(monto)}?`)) return;
 
   await addDoc(collection(db,"Distribuciones"), {

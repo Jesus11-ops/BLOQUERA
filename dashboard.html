@@ -129,6 +129,11 @@
           <div class="stat-value" id="st-patrimonio">—</div>
           <div class="stat-sub">efectivo + valor en stock</div>
         </div>
+        <div class="stat-card verde">
+          <div class="stat-label">Ganancia Neta (Repartible)</div>
+          <div class="stat-value" id="st-gananciasneta">—</div>
+          <div class="stat-sub">patrimonio − capital reservado</div>
+        </div>
       </div>
 
       <div class="grid-2">
@@ -629,6 +634,11 @@
           <div class="form-group">
             <label>Precio de venta por bloque ($)</label>
             <input type="number" id="configPrecioBloque" placeholder="Ej: 1800" min="0">
+          </div>
+          <div class="form-group">
+            <label>Capital reservado (siempre libre) ($)</label>
+            <input type="number" id="configCapitalReservado" placeholder="Ej: 3200000" min="0">
+            <small style="color:var(--texto-sec);font-size:11px;">Monto que quieres mantener disponible sin repartir, aunque esté en producto sin vender.</small>
           </div>
           <button class="btn btn-secondary btn-full" style="margin-top:8px;" onclick="guardarConfig()">
             💾 Guardar configuración
