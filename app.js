@@ -158,6 +158,13 @@ function calcStats() {
   const capitalReservado = DATA.config.capitalReservado || 0;
   const gananciaNeta      = patrimonioTotal - capitalReservado;
 
+  // ── Efectivo actual por debajo (o por encima) del capital que quieres mantener libre ──
+  const efectivoBajoCapital = capitalActual - capitalReservado;
+
+  // ── Ganancia Acumulada real: ganancia en efectivo + valor del stock sin vender − ya distribuido ──
+  // (equivale a Patrimonio Total − Capital invertido). Es el histórico real, no depende del capital reservado.
+  const gananciaAcumuladaReal = patrimonioTotal - capitalTotal;
+
   // ── Ganancia del período actual (desde el día después de la última distribución) ──
   let periodoDesde = null;
   let periodoLabel = "inicio";
@@ -183,7 +190,8 @@ function calcStats() {
            totalEgresos, capitalTotal, ganancia, capitalActual,
            gananciaPeriodo, periodoLabel,
            precioBloqueActual, valorStockBloques, patrimonioTotal,
-           capitalReservado, gananciaNeta };
+           capitalReservado, gananciaNeta,
+           efectivoBajoCapital, gananciaAcumuladaReal };
 }
 
 // ═══ RESUMEN ══════════════════════════════════════════════════
@@ -199,16 +207,19 @@ function renderResumen() {
   if (elPatrimonio) elPatrimonio.textContent = fmt(s.patrimonioTotal);
   const elGananciaNeta = document.getElementById("st-gananciasneta");
   if (elGananciaNeta) elGananciaNeta.textContent = fmt(s.gananciaNeta);
-  // Ganancia del período (desde última distribución) y acumulada histórica
+  // Efectivo actual vs. capital reservado (antes "Ganancia del Período")
   const elGan = document.getElementById("st-ganancia");
-  elGan.textContent = fmt(s.gananciaPeriodo);
-  elGan.className = s.gananciaPeriodo >= 0 ? "stat-value pos" : "stat-value neg";
+  elGan.textContent = fmt(s.efectivoBajoCapital);
+  elGan.className = s.efectivoBajoCapital >= 0 ? "stat-value pos" : "stat-value neg";
   const elRango = document.getElementById("st-ganancia-rango");
-  if (elRango) elRango.textContent = s.periodoLabel;
+  if (elRango) elRango.textContent = s.efectivoBajoCapital >= 0
+    ? "por encima del capital reservado"
+    : "por debajo del capital reservado";
+  // Ganancia Acumulada real (incluye el valor del stock sin vender)
   const elTotal = document.getElementById("st-ganancia-total");
   if (elTotal) {
-    elTotal.textContent = fmt(s.ganancia);
-    elTotal.className = s.ganancia >= 0 ? "stat-value pos" : "stat-value neg";
+    elTotal.textContent = fmt(s.gananciaAcumuladaReal);
+    elTotal.className = s.gananciaAcumuladaReal >= 0 ? "stat-value pos" : "stat-value neg";
   }
 
   // últimas ventas
